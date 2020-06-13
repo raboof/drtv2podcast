@@ -35,24 +35,27 @@ object Parser {
         ZonedDateTime.of(LocalDateTime.parse(s"$year-$month-${day.reverse.padTo(2, '0').reverse}T12:00:00"), ZoneId.of("Europe/Amsterdam"))
     }
 
-    def parse(item: Element): Item = {
+    def parse(item: Element, fetch: Uri => Document): Item = {
         // Perhaps in the future fetch the whole page to get more details
         val link = Uri(item >> attr("href")(".read-more-button"))
-        val url = Uri(item >> attr("src")("source"))
+        
+        val page = fetch(link)
+
+        val url = Uri(page >> attr("src")("source"))
         Item(
-            item >> element(".post-title") >> text("a"),
+            page >> text("h1"),
             link,
-            parseDate(item >> text(".updated")),
+            parseDate(page >> text(".updated")),
             url
         )
     }
 
-    def parse(doc: Document): Rss = {
+    def parse(doc: Document, fetch: Uri => Document): Rss = {
         Rss(
             "DRTV Actueel Nieuws",
             Uri("https://www.deventerrtv.nl/category/radio/actueel-nieuws/"),
             "Deventer radio & televisie Actueel Nieuws",
-            (doc >> elementList("article")).map(parse).toSeq
+            (doc >> elementList("article")).map(a => parse(a, fetch)).toSeq
         )
     }
 }

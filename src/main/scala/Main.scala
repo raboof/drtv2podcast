@@ -16,8 +16,13 @@ import java.time.format.DateTimeFormatter
 
 object Main extends App {
     val browser = JsoupBrowser()
-    val rss = Parser.parse(browser.get("https://www.deventerrtv.nl/category/radio/actueel-nieuws/")) 
-    //+ Parser.parse(browser.get("https://www.deventerrtv.nl/category/radio/actueel-nieuws/page/2/"))
+    val rss = Parser.parse(
+        browser.get("https://www.deventerrtv.nl/category/radio/actueel-nieuws/"),
+        uri => browser.get(uri.toString)
+    ) + Parser.parse(
+        browser.get("https://www.deventerrtv.nl/category/radio/actueel-nieuws/page/2/"),
+        uri => browser.get(uri.toString)
+    )
 
     implicit val system = ActorSystem("scraper")
     val http = Http()

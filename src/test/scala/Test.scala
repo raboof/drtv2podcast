@@ -11,7 +11,10 @@ class Test extends AnyWordSpecLike with Matchers {
     "The converter" should {
         "be able to parse items from the index page" in {
             val browser = JsoupBrowser()
-            val rss = Parser.parse(browser.parseResource("/index.html"))
+            val rss = Parser.parse(
+                browser.parseResource("/index.html"),
+                uri => { println(uri.toString.drop(26)); browser.parseResource(uri.toString.drop(26).init) }
+            )
             rss.items.length should be(5)
         }
     }
