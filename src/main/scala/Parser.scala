@@ -2,6 +2,8 @@ import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.ZoneId
 
+import scala.util.control.NonFatal
+
 import akka.http.scaladsl.model.Uri
 
 import net.ruippeixotog.scalascraper.model._
@@ -51,11 +53,15 @@ object Parser {
     }
 
     def parse(doc: Document, fetch: Uri => Document): Rss = {
+      try {
         Rss(
             "DRTV Actueel Nieuws",
             Uri("https://www.deventerrtv.nl/category/radio/actueel-nieuws/"),
             "Deventer radio & televisie Actueel Nieuws",
             (doc >> elementList("article")).map(a => parse(a, fetch)).toSeq
         )
+      } catch {
+        case NonFatal(e) => throw new IllegalStateException(s"Failed to parse [${doc.location}]: ${e.getMessage}", e)
+      }
     }
 }
