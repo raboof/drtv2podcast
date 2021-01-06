@@ -37,13 +37,17 @@ object Parser {
         ZonedDateTime.of(LocalDateTime.parse(s"$year-$month-${day.reverse.padTo(2, '0').reverse}T12:00:00"), ZoneId.of("Europe/Amsterdam"))
     }
 
+    def uri(s: String): Uri =
+      // https://github.com/akka/akka-http/issues/3722
+      Uri(s.replaceAll("\u00e9", "%C3%A9"))
+
     def parse(item: Element, fetch: Uri => Document): Item = {
         // Perhaps in the future fetch the whole page to get more details
-        val link = Uri(item >> attr("href")(".read-more-button"))
+        val link = uri(item >> attr("href")(".read-more-button"))
         
         val page = fetch(link)
 
-        val url = Uri(page >> attr("src")("source"))
+        val url = uri(page >> attr("src")("source"))
         Item(
             page >> text("h1"),
             link,
